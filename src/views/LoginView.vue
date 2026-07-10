@@ -27,40 +27,20 @@ async function submit() {
 </script>
 
 <template>
-  <section class="auth">
-    <h2>Log in</h2>
-    <form @submit.prevent="submit">
-      <label>Email<input v-model="email" type="email" required /></label>
-      <label>Password<input v-model="password" type="password" required /></label>
-      <button :disabled="busy">Log in</button>
-      <p v-if="error" class="err">{{ error }}</p>
+  <section class="mx-auto mt-8 max-w-xs">
+    <h2 class="text-lg font-semibold">Log in</h2>
+    <form class="mt-4 flex flex-col gap-3" @submit.prevent="submit">
+      <label class="flex flex-col gap-1 text-sm"
+        >Email<input class="field" v-model="email" type="email" required
+      /></label>
+      <label class="flex flex-col gap-1 text-sm"
+        >Password<input class="field" v-model="password" type="password" required
+      /></label>
+      <button class="btn" :disabled="busy">Log in</button>
+      <p v-if="error" class="text-sm text-danger">{{ error }}</p>
     </form>
-    <p class="muted">No account? <RouterLink to="/signup">Sign up</RouterLink></p>
+    <p class="mt-4 text-muted">
+      No account? <RouterLink to="/signup" class="text-accent hover:underline">Sign up</RouterLink>
+    </p>
   </section>
 </template>
-
-<style scoped>
-.auth {
-  max-width: 320px;
-  margin: 2rem auto;
-}
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.9rem;
-}
-.err {
-  color: #ff6b6b;
-  font-size: 0.85rem;
-}
-.muted {
-  color: var(--muted);
-  margin-top: 1rem;
-}
-</style>
