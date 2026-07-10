@@ -1,35 +1,62 @@
-@import './base.css';
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --line: #2a313c;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #3fb950;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+}
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+  min-height: 100vh;
 }
 
-a,
-.green {
+h1,
+h2,
+h3 {
+  color: var(--text);
+}
+
+a {
+  color: var(--text);
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+}
+a:hover {
+  color: var(--accent);
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+input,
+button {
+  font: inherit;
+  color: var(--text);
+  background: #0d1117;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
 }
 
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+button {
+  background: var(--accent);
+  color: #04120a;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
