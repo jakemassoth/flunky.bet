@@ -1,40 +1,38 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { computed } from 'vue'
 import { RouterLink, RouterView, useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { useBetsStore } from '@/stores/bets'
-import { useMarketsStore } from '@/stores/markets'
+import { useAuth } from '@/composables/useAuth'
+import { useSettings } from '@/queries/markets'
+import { useMyBets } from '@/queries/bets'
+import { availableBalance } from '@/lib/balance'
 
-const auth = useAuthStore()
-const bets = useBetsStore()
-const markets = useMarketsStore()
+const { isAuthed, displayName, signOut } = useAuth()
 const router = useRouter()
 
-// Keep the header balance correct on any landing page (not just Markets).
-async function loadMine() {
-  if (!auth.isAuthed) return
-  await Promise.all([markets.refreshSettings(), bets.load()])
-}
-onMounted(loadMine)
-watch(() => auth.isAuthed, loadMine)
+const { data: settings } = useSettings()
+const { data: myBets } = useMyBets()
 
-async function signOut() {
-  await auth.signOut()
+const balance = computed(() =>
+  availableBalance(settings.value?.starting_credits ?? 200, myBets.value ?? []),
+)
+
+async function onSignOut() {
+  await signOut()
   router.push({ name: 'login' })
 }
 </script>
 
 <template>
-  <header v-if="auth.isAuthed">
+  <header v-if="isAuthed">
     <div class="brand">flunky<span>.bet</span></div>
     <nav>
       <RouterLink to="/">Markets</RouterLink>
       <RouterLink to="/leaderboard">Leaderboard</RouterLink>
     </nav>
     <div class="right">
-      <span class="bal">{{ bets.availableBalance }} cr</span>
-      <span class="who">{{ auth.displayName }}</span>
-      <button class="ghost" @click="signOut">Sign out</button>
+      <span class="bal">{{ balance }} cr</span>
+      <span class="who">{{ displayName }}</span>
+      <button class="ghost" @click="onSignOut">Sign out</button>
     </div>
   </header>
   <main>

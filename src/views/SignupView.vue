@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { useAuth } from '@/composables/useAuth'
 import { errorMessage } from '@/lib/errors'
 
-const auth = useAuthStore()
+const { signUp } = useAuth()
 const router = useRouter()
 
 const displayName = ref('')
@@ -17,7 +17,7 @@ async function submit() {
   error.value = ''
   busy.value = true
   try {
-    await auth.signUp(email.value, password.value, displayName.value)
+    await signUp(email.value, password.value, displayName.value)
     router.push({ name: 'markets' })
   } catch (e: unknown) {
     error.value = errorMessage(e)

@@ -1,25 +1,19 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { supabase } from '@/lib/supabase'
-import type { LeaderboardRow } from '@/lib/types'
+import { errorMessage } from '@/lib/errors'
+import { useLeaderboard } from '@/queries/leaderboard'
 
-const rows = ref<LeaderboardRow[]>([])
-const loaded = ref(false)
-
-onMounted(async () => {
-  const { data } = await supabase.rpc('get_leaderboard')
-  rows.value = (data as LeaderboardRow[]) ?? []
-  loaded.value = true
-})
+const { data: rows, isPending, isError, error } = useLeaderboard()
 </script>
 
 <template>
   <section>
     <h2>Leaderboard</h2>
-    <p v-if="loaded && rows.length === 0" class="muted">
+    <p v-if="isPending" class="muted">Loading…</p>
+    <p v-else-if="isError" class="muted err">Couldn't load leaderboard: {{ errorMessage(error) }}</p>
+    <p v-else-if="(rows?.length ?? 0) === 0" class="muted">
       Results not in yet — the leaderboard unlocks the moment the tournament settles.
     </p>
-    <table v-else-if="rows.length" class="board">
+    <table v-else class="board">
       <thead>
         <tr><th>#</th><th>Player</th><th class="num">Credits</th></tr>
       </thead>
@@ -40,6 +34,9 @@ h2 {
 }
 .muted {
   color: var(--muted);
+}
+.muted.err {
+  color: #ff8a8a;
 }
 .board {
   width: 100%;

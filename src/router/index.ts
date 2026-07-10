@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { useAuth } from '@/composables/useAuth'
 import MarketsView from '@/views/MarketsView.vue'
 import LeaderboardView from '@/views/LeaderboardView.vue'
 import LoginView from '@/views/LoginView.vue'
@@ -18,10 +18,10 @@ const router = createRouter({
 const PUBLIC = new Set(['login', 'signup'])
 
 router.beforeEach((to) => {
-  const auth = useAuthStore()
+  const { isAuthed } = useAuth()
   const isPublic = PUBLIC.has(to.name as string)
-  if (!auth.isAuthed && !isPublic) return { name: 'login' }
-  if (auth.isAuthed && isPublic) return { name: 'markets' }
+  if (!isAuthed.value && !isPublic) return { name: 'login' }
+  if (isAuthed.value && isPublic) return { name: 'markets' }
   return true
 })
 

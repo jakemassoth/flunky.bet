@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { Team } from '@/lib/types'
-import { useMarketsStore } from '@/stores/markets'
-import { useBetsStore } from '@/stores/bets'
 import { errorMessage } from '@/lib/errors'
+import { impliedOdds, poolStake } from '@/lib/odds'
+import { availableBalance } from '@/lib/balance'
+import { usePools, useSettings } from '@/queries/markets'
+import { useCancelBet, useMyBets, usePlaceBet } from '@/queries/bets'
 
 const props = defineProps<{
   marketKey: string
@@ -14,15 +16,30 @@ const props = defineProps<{
   winnerTeamId?: string | null
 }>()
 
-const markets = useMarketsStore()
-const bets = useBetsStore()
+const { data: pools } = usePools()
+const { data: settings } = useSettings()
+const { data: myBets } = useMyBets()
+const placeBet = usePlaceBet()
+const cancelBet = useCancelBet()
 
-const myBet = computed(() => bets.betForMarket(props.marketKey))
+const poolList = computed(() => pools.value ?? [])
+const bettingOpen = computed(() => settings.value?.betting_open ?? false)
+const settled = computed(() => !!settings.value?.settled_at)
+const myBet = computed(() => (myBets.value ?? []).find((b) => b.market_key === props.marketKey))
+const myBetTeam = computed(() => props.outcomes.find((t) => t.id === myBet.value?.team_id))
 
-const selectedTeamId = ref<string>('')
-const stake = ref<number>(10)
-const busy = ref(false)
+const busy = computed(() => placeBet.isPending.value || cancelBet.isPending.value)
+
+const selectedTeamId = ref('')
+const stake = ref(10)
 const error = ref('')
+
+// Editing your own bet frees its current stake, so it counts toward your max.
+const maxStake = computed(
+  () =>
+    availableBalance(settings.value?.starting_credits ?? 200, myBets.value ?? []) +
+    (myBet.value?.stake ?? 0),
+)
 
 // Pre-fill the form from an existing bet (and whenever it changes).
 watch(
@@ -36,11 +53,8 @@ watch(
   { immediate: true },
 )
 
-// Editing your own bet frees its current stake, so it counts toward your max.
-const maxStake = computed(() => bets.availableBalance + (myBet.value?.stake ?? 0))
-
 function odds(teamId: string): string {
-  const o = markets.impliedOdds(props.marketKey, teamId)
+  const o = impliedOdds(poolList.value, props.marketKey, teamId)
   return o === null ? '—' : `~${o.toFixed(1)}x`
 }
 
@@ -55,9 +69,9 @@ async function place() {
     error.value = 'Stake must be a whole number ≥ 1.'
     return
   }
-  busy.value = true
   try {
-    await bets.submit({
+    await placeBet.mutateAsync({
+      existingBetId: myBet.value?.id,
       marketType: props.marketType,
       matchId: props.matchId,
       teamId: selectedTeamId.value,
@@ -65,32 +79,28 @@ async function place() {
     })
   } catch (e: unknown) {
     error.value = errorMessage(e)
-  } finally {
-    busy.value = false
   }
 }
 
 async function cancel() {
   error.value = ''
-  busy.value = true
+  if (!myBet.value) return
   try {
-    await bets.cancel(props.marketKey)
+    await cancelBet.mutateAsync(myBet.value)
     selectedTeamId.value = ''
     stake.value = 10
   } catch (e: unknown) {
     error.value = errorMessage(e)
-  } finally {
-    busy.value = false
   }
 }
 </script>
 
 <template>
-  <div class="card" :class="{ settled: markets.settled }">
+  <div class="card" :class="{ settled }">
     <div class="card-head">
       <h3>{{ title }}</h3>
       <span v-if="myBet" class="mine">
-        your bet: {{ markets.teamById[myBet.team_id]?.name }} · {{ myBet.stake }}
+        your bet: {{ myBetTeam?.name }} · {{ myBet.stake }}
         <template v-if="myBet.settled"> → won {{ myBet.payout }}</template>
       </span>
     </div>
@@ -100,7 +110,7 @@ async function cancel() {
         <tr
           v-for="t in outcomes"
           :key="t.id"
-          :class="{ winner: markets.settled && winnerTeamId === t.id }"
+          :class="{ winner: settled && winnerTeamId === t.id }"
         >
           <td class="pick">
             <label>
@@ -109,19 +119,19 @@ async function cancel() {
                 :name="`m-${marketKey}`"
                 :value="t.id"
                 v-model="selectedTeamId"
-                :disabled="!markets.bettingOpen"
+                :disabled="!bettingOpen"
               />
               {{ t.name }}
-              <span v-if="markets.settled && winnerTeamId === t.id" class="tag">WON</span>
+              <span v-if="settled && winnerTeamId === t.id" class="tag">WON</span>
             </label>
           </td>
-          <td class="num">{{ markets.poolStake(marketKey, t.id) }} staked</td>
+          <td class="num">{{ poolStake(poolList, marketKey, t.id) }} staked</td>
           <td class="num odds">{{ odds(t.id) }}</td>
         </tr>
       </tbody>
     </table>
 
-    <div v-if="markets.bettingOpen" class="form">
+    <div v-if="bettingOpen" class="form">
       <label>
         Stake
         <input type="number" min="1" :max="maxStake" step="1" v-model.number="stake" />
