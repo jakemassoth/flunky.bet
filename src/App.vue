@@ -1,85 +1,89 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { computed } from 'vue'
+import { RouterLink, RouterView, useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
+import { useSettings } from '@/queries/markets'
+import { useMyBets } from '@/queries/bets'
+import { availableBalance } from '@/lib/balance'
+
+const { isAuthed, displayName, signOut } = useAuth()
+const router = useRouter()
+
+const { data: settings } = useSettings()
+const { data: myBets } = useMyBets()
+
+const balance = computed(() =>
+  availableBalance(settings.value?.starting_credits ?? 200, myBets.value ?? []),
+)
+
+async function onSignOut() {
+  await signOut()
+  router.push({ name: 'login' })
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+  <header v-if="isAuthed">
+    <div class="brand">flunky<span>.bet</span></div>
+    <nav>
+      <RouterLink to="/">Markets</RouterLink>
+      <RouterLink to="/leaderboard">Leaderboard</RouterLink>
+    </nav>
+    <div class="right">
+      <span class="bal">{{ balance }} cr</span>
+      <span class="who">{{ displayName }}</span>
+      <button class="ghost" @click="onSignOut">Sign out</button>
     </div>
   </header>
-
-  <RouterView />
+  <main>
+    <RouterView />
+  </main>
 </template>
 
 <style scoped>
 header {
-  line-height: 1.5;
-  max-height: 100vh;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
 }
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.brand {
+  font-weight: 700;
 }
-
+.brand span {
+  color: var(--accent);
+}
 nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
 }
-
 nav a.router-link-exact-active {
-  color: var(--color-text);
+  color: var(--accent);
 }
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
+.right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
+.bal {
+  font-weight: 700;
+  color: var(--accent);
 }
-
-nav a:first-of-type {
-  border: 0;
+.who {
+  color: var(--muted);
+  font-size: 0.9rem;
 }
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+main {
+  padding: 1.25rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+button.ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
 }
 </style>
