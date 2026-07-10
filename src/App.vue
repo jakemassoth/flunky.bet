@@ -23,67 +23,30 @@ async function onSignOut() {
 </script>
 
 <template>
-  <header v-if="isAuthed">
-    <div class="brand">flunky<span>.bet</span></div>
-    <nav>
-      <RouterLink to="/">Markets</RouterLink>
-      <RouterLink to="/leaderboard">Leaderboard</RouterLink>
+  <header
+    v-if="isAuthed"
+    class="sticky top-0 z-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur sm:px-6"
+  >
+    <div class="text-lg font-bold">flunky<span class="text-accent">.bet</span></div>
+    <nav class="flex gap-4">
+      <RouterLink
+        to="/"
+        class="hover:text-accent [&.router-link-exact-active]:text-accent"
+        >Markets</RouterLink
+      >
+      <RouterLink
+        to="/leaderboard"
+        class="hover:text-accent [&.router-link-exact-active]:text-accent"
+        >Leaderboard</RouterLink
+      >
     </nav>
-    <div class="right">
-      <span class="bal">{{ balance }} cr</span>
-      <span class="who">{{ displayName }}</span>
-      <button class="ghost" @click="onSignOut">Sign out</button>
+    <div class="ml-auto flex items-center gap-3">
+      <span class="font-bold text-accent">{{ balance }} cr</span>
+      <span class="hidden text-sm text-muted sm:inline">{{ displayName }}</span>
+      <button class="btn btn-ghost" @click="onSignOut">Sign out</button>
     </div>
   </header>
-  <main>
+  <main class="mx-auto max-w-[1100px] px-4 py-5 sm:px-6">
     <RouterView />
   </main>
 </template>
-
-<style scoped>
-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid var(--line);
-  flex-wrap: wrap;
-}
-.brand {
-  font-weight: 700;
-}
-.brand span {
-  color: var(--accent);
-}
-nav {
-  display: flex;
-  gap: 1rem;
-}
-nav a.router-link-exact-active {
-  color: var(--accent);
-}
-.right {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.bal {
-  font-weight: 700;
-  color: var(--accent);
-}
-.who {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-main {
-  padding: 1.25rem;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-button.ghost {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--line);
-}
-</style>

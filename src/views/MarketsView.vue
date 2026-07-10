@@ -24,19 +24,26 @@ const matchOutcomes = (teamAId: string, teamBId: string) =>
 
 <template>
   <section>
-    <div v-if="loading" class="note">Loading markets…</div>
-    <div v-else-if="teamsError" class="note err">Couldn't load markets: {{ errorMessage(teamsErr) }}</div>
+    <div v-if="loading" class="py-4 text-muted">Loading markets…</div>
+    <div v-else-if="teamsError" class="py-4 text-danger">
+      Couldn't load markets: {{ errorMessage(teamsErr) }}
+    </div>
 
     <template v-else>
-      <div class="status">
-        <span class="pill" :class="bettingOpen ? 'open' : 'locked'">
+      <div class="mb-4 flex flex-wrap items-center gap-2">
+        <span
+          class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+          :class="bettingOpen ? 'bg-accent/15 text-accent' : 'bg-danger/15 text-danger'"
+        >
           {{ bettingOpen ? 'Betting OPEN' : 'Betting LOCKED' }}
         </span>
-        <span v-if="settled" class="pill settled">Settled</span>
-        <span v-if="poolsFetching" class="live">⟳ updating pools…</span>
+        <span v-if="settled" class="rounded-full bg-sky-400/15 px-2.5 py-0.5 text-xs font-semibold text-sky-400">
+          Settled
+        </span>
+        <span v-if="poolsFetching" class="text-xs text-muted">⟳ updating pools…</span>
       </div>
 
-      <h2>Tournament winner</h2>
+      <h2 class="mt-5 mb-2 text-lg font-semibold">Tournament winner</h2>
       <MarketCard
         :market-key="TOURNAMENT_KEY"
         market-type="tournament_winner"
@@ -45,8 +52,8 @@ const matchOutcomes = (teamAId: string, teamBId: string) =>
         :outcomes="teams ?? []"
       />
 
-      <h2>Matches</h2>
-      <div class="grid">
+      <h2 class="mt-6 mb-2 text-lg font-semibold">Matches</h2>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <MarketCard
           v-for="m in matches ?? []"
           :key="m.id"
@@ -61,50 +68,3 @@ const matchOutcomes = (teamAId: string, teamBId: string) =>
     </template>
   </section>
 </template>
-
-<style scoped>
-.note {
-  color: var(--muted);
-  padding: 1rem 0;
-}
-.note.err {
-  color: #ff8a8a;
-}
-.status {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-.pill {
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-}
-.pill.open {
-  background: #12351f;
-  color: var(--accent);
-}
-.pill.locked {
-  background: #3a1414;
-  color: #ff8a8a;
-}
-.pill.settled {
-  background: #142a3a;
-  color: #8ac6ff;
-}
-.live {
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-h2 {
-  font-size: 1.1rem;
-  margin: 1.25rem 0 0.5rem;
-}
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 0.75rem;
-}
-</style>

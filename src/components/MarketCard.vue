@@ -96,127 +96,67 @@ async function cancel() {
 </script>
 
 <template>
-  <div class="card" :class="{ settled }">
-    <div class="card-head">
-      <h3>{{ title }}</h3>
-      <span v-if="myBet" class="mine">
+  <div class="rounded-lg border border-line bg-panel p-4" :class="{ 'opacity-80': settled }">
+    <div class="flex flex-wrap items-baseline justify-between gap-2">
+      <h3 class="text-base font-semibold">{{ title }}</h3>
+      <span v-if="myBet" class="text-xs text-accent">
         your bet: {{ myBetTeam?.name }} · {{ myBet.stake }}
         <template v-if="myBet.settled"> → won {{ myBet.payout }}</template>
       </span>
     </div>
 
-    <table class="outcomes">
+    <table class="my-2 w-full border-collapse">
       <tbody>
         <tr
           v-for="t in outcomes"
           :key="t.id"
-          :class="{ winner: settled && winnerTeamId === t.id }"
+          :class="{ 'font-semibold text-accent': settled && winnerTeamId === t.id }"
         >
-          <td class="pick">
-            <label>
+          <td class="py-1.5">
+            <label class="flex cursor-pointer items-center gap-2">
               <input
                 type="radio"
+                class="size-4 accent-accent"
                 :name="`m-${marketKey}`"
                 :value="t.id"
                 v-model="selectedTeamId"
                 :disabled="!bettingOpen"
               />
-              {{ t.name }}
-              <span v-if="settled && winnerTeamId === t.id" class="tag">WON</span>
+              <span>{{ t.name }}</span>
+              <span
+                v-if="settled && winnerTeamId === t.id"
+                class="rounded bg-accent px-1.5 text-[0.65rem] font-semibold text-accent-ink"
+                >WON</span
+              >
             </label>
           </td>
-          <td class="num">{{ poolStake(poolList, marketKey, t.id) }} staked</td>
-          <td class="num odds">{{ odds(t.id) }}</td>
+          <td class="whitespace-nowrap py-1.5 text-right text-sm text-muted">
+            {{ poolStake(poolList, marketKey, t.id) }} staked
+          </td>
+          <td class="w-16 whitespace-nowrap py-1.5 text-right text-sm text-muted">{{ odds(t.id) }}</td>
         </tr>
       </tbody>
     </table>
 
-    <div v-if="bettingOpen" class="form">
-      <label>
+    <div v-if="bettingOpen" class="flex flex-wrap items-center gap-2">
+      <label class="flex items-center gap-2 text-sm">
         Stake
-        <input type="number" min="1" :max="maxStake" step="1" v-model.number="stake" />
+        <input
+          type="number"
+          min="1"
+          :max="maxStake"
+          step="1"
+          v-model.number="stake"
+          class="field w-20"
+        />
       </label>
-      <button :disabled="busy" @click="place">{{ myBet ? 'Update' : 'Place bet' }}</button>
-      <button v-if="myBet" class="ghost" :disabled="busy" @click="cancel">Cancel</button>
+      <button class="btn" :disabled="busy" @click="place">
+        {{ myBet ? 'Update' : 'Place bet' }}
+      </button>
+      <button v-if="myBet" class="btn btn-ghost" :disabled="busy" @click="cancel">Cancel</button>
     </div>
-    <div v-else class="locked-note">Betting locked</div>
+    <div v-else class="text-sm text-muted">Betting locked</div>
 
-    <p v-if="error" class="err">{{ error }}</p>
+    <p v-if="error" class="mt-1.5 text-sm text-danger">{{ error }}</p>
   </div>
 </template>
-
-<style scoped>
-.card {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  background: var(--panel);
-}
-.card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-.mine {
-  font-size: 0.8rem;
-  color: var(--accent);
-}
-.outcomes {
-  width: 100%;
-  margin: 0.5rem 0;
-  border-collapse: collapse;
-}
-.outcomes td {
-  padding: 0.2rem 0;
-  font-size: 0.9rem;
-}
-.num {
-  text-align: right;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.odds {
-  width: 4.5rem;
-}
-tr.winner {
-  color: var(--accent);
-  font-weight: 600;
-}
-.tag {
-  font-size: 0.65rem;
-  background: var(--accent);
-  color: #04120a;
-  border-radius: 4px;
-  padding: 0 0.3rem;
-  margin-left: 0.3rem;
-}
-.form {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-.form input {
-  width: 5rem;
-}
-.locked-note {
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-button.ghost {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--line);
-}
-.err {
-  color: #ff6b6b;
-  font-size: 0.8rem;
-  margin: 0.3rem 0 0;
-}
-</style>
