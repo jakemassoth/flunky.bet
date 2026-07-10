@@ -112,11 +112,11 @@ async function cancel() {
           :key="t.id"
           :class="{ 'font-semibold text-accent': settled && winnerTeamId === t.id }"
         >
-          <td class="py-1.5">
+          <td class="py-1.5 pr-3">
             <label class="flex cursor-pointer items-center gap-2">
               <input
                 type="radio"
-                class="size-4 accent-accent"
+                class="size-4 shrink-0 accent-accent"
                 :name="`m-${marketKey}`"
                 :value="t.id"
                 v-model="selectedTeamId"
