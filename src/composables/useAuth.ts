@@ -43,28 +43,18 @@ export function useAuth() {
   const isAuthed = computed(() => !!session.value)
 
   async function signUp(email: string, password: string, name: string) {
-    const { data, error } = await supabase.auth.signUp({
+    // Email confirmation is disabled, so Supabase returns a session immediately
+    // and onAuthStateChange signs the user in — no confirmation step.
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { display_name: name } },
     })
     if (error) throw error
-    // When email confirmation is enabled, Supabase creates the user but returns
-    // no session — they must click the emailed link first. When it's disabled a
-    // session comes back and they're signed in instantly. The caller uses this
-    // to decide between the "check your inbox" screen and routing into the app.
-    return { needsEmailConfirmation: !data.session }
   }
 
   async function signIn(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
-  }
-
-  // Re-send the sign-up confirmation link, e.g. from the "check your inbox"
-  // screen or when an unconfirmed user tries to log in.
-  async function resendConfirmation(email: string) {
-    const { error } = await supabase.auth.resend({ type: 'signup', email })
     if (error) throw error
   }
 
@@ -79,7 +69,6 @@ export function useAuth() {
     isAuthed,
     signUp,
     signIn,
-    resendConfirmation,
     signOut,
   }
 }
