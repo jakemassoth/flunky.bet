@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue'
-import { TOURNAMENT_KEY } from '@/lib/types'
+import { type Team, TOURNAMENT_KEY } from '@/lib/types'
 import { useMarketsStore } from '@/stores/markets'
 import { useBetsStore } from '@/stores/bets'
 import MarketCard from '@/components/MarketCard.vue'
@@ -26,7 +26,9 @@ onUnmounted(() => {
 })
 
 const matchOutcomes = (teamAId: string, teamBId: string) =>
-  [markets.teamById[teamAId], markets.teamById[teamBId]].filter(Boolean)
+  [markets.teamById[teamAId], markets.teamById[teamBId]].filter(
+    (t): t is Team => !!t,
+  )
 </script>
 
 <template>
